@@ -11,5 +11,5 @@
 	<li>brrainz.harmony</li>
   </loadAfter>
   <showCrossPromotions>true</showCrossPromotions>
-  <downloadUri>https://github.com/CaptainMuscles/CM_Grab_Your_Tool/</downloadUri>
+  <downloadUri>https://github.com/CaptainMuscles/CM_Grab_Your_Tool/releases</downloadUri>
 </Manifest>
