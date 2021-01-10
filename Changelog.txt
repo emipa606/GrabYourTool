@@ -1,0 +1,12 @@
+## [1.0.1] - 2021-01-09
+
+### Fixed
+- Pawns drawing current weapon/tool on skill-related task they have no tool for
+- Pawns not drawing tool during task if it was already in the primary weapon slot
+- Non-humans being checked for tools
+
+
+## [1.0.0] - 2021-01-09
+
+### Added
+- Initial release

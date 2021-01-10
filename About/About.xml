@@ -7,7 +7,7 @@
 	<supportedVersions>
 		<li>1.2</li>
 	</supportedVersions>
-	<description>Do your pawns always have the right tool for the job? Then why the hell don't they use them already? This mod will make them do that.</description>
+	<description>Do your pawns always have the right tool for the job? Then why the hell aren't they using them? This mod will make them do that.</description>
 	<modDependencies>
 		<li>
 			<packageId>brrainz.harmony</packageId>
