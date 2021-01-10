@@ -1,3 +1,9 @@
+## [1.0.2] - 2021-01-10
+
+### Fixed
+- Pawns not drawing tool when staring a new task that did not require them to move.
+
+
 ## [1.0.1] - 2021-01-09
 
 ### Fixed
