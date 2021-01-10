@@ -14,7 +14,7 @@ namespace CM_Grab_Your_Tool
         private static GrabYourToolMod _instance;
         public static GrabYourToolMod Instance => _instance;
 
-        public GrabYourToolModMemory memory = new GrabYourToolModMemory();
+        public Dictionary<Pawn, GrabYourToolMemory> pawnMemory = new Dictionary<Pawn, GrabYourToolMemory>();
 
         public GrabYourToolMod(ModContentPack content) : base(content)
         {
@@ -23,51 +23,60 @@ namespace CM_Grab_Your_Tool
 
             _instance = this;
         }
-    }
-
-    public class GrabYourToolModMemory
-    {
-        public Dictionary<Pawn, Toil> lastCheckedToil = new Dictionary<Pawn, Toil>();
-        public Dictionary<Pawn, SkillDef> lastCheckedSkill = new Dictionary<Pawn, SkillDef>();
-        public Dictionary<Pawn, bool> pawnUsingTool = new Dictionary<Pawn, bool>();
-
-        public bool UpdateToilEntry(Pawn pawn, Toil toil)
-        {
-            if (!lastCheckedToil.ContainsKey(pawn))
-                lastCheckedToil.Add(pawn, toil);
-            else if (lastCheckedToil[pawn] != toil)
-                lastCheckedToil[pawn] = toil;
-            else
-                return false;
-
-            return true;
-        }
-
-        public bool UpdateSkillEntry(Pawn pawn, SkillDef skill)
-        {
-            if (!lastCheckedSkill.ContainsKey(pawn))
-                lastCheckedSkill.Add(pawn, skill);
-            else if (lastCheckedSkill[pawn] != skill)
-                lastCheckedSkill[pawn] = skill;
-            else
-                return false;
-
-            return true;
-        }
 
         public bool IsPawnUsingTool(Pawn pawn)
         {
-            return pawnUsingTool.ContainsKey(pawn) && pawnUsingTool[pawn];
+            return (pawnMemory.ContainsKey(pawn) && pawnMemory[pawn].IsUsingTool);
         }
 
-        public void ClearPawn(Pawn pawn)
+        public GrabYourToolMemory GetMemory(Pawn pawn)
         {
-            if (lastCheckedSkill.ContainsKey(pawn))
-                lastCheckedToil.Remove(pawn);
-            if (lastCheckedSkill.ContainsKey(pawn))
-                lastCheckedSkill.Remove(pawn);
-            if (pawnUsingTool.ContainsKey(pawn))
-                pawnUsingTool.Remove(pawn);
+            if (!pawnMemory.ContainsKey(pawn))
+                pawnMemory.Add(pawn, new GrabYourToolMemory());
+
+            return pawnMemory[pawn];
+        }
+
+        public void ClearMemory(Pawn pawn)
+        {
+            if (pawnMemory.ContainsKey(pawn))
+                pawnMemory.Remove(pawn);
+        }
+    }
+
+    public class GrabYourToolMemory
+    {
+        private Toil lastCheckedToil = null;
+        private SkillDef lastCheckedSkill = null;
+        private bool? usingTool = false;
+
+        public bool IsUsingTool => (usingTool.HasValue ? usingTool.Value : false);
+
+        public bool UpdateToil(Toil toil)
+        {
+            if (lastCheckedToil != toil)
+            {
+                lastCheckedToil = toil;
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool UpdateSkill(SkillDef skill)
+        {
+            if (lastCheckedSkill != skill)
+            {
+                lastCheckedSkill = skill;
+                return true;
+            }
+
+            return false;
+        }
+
+        public void UpdateUsingTool(bool isUsingTool)
+        {
+            usingTool = isUsingTool;
         }
     }
 
@@ -92,34 +101,34 @@ namespace CM_Grab_Your_Tool
                 if (__instance.CurToilIndex >= 0 && __instance.CurToilIndex < ___toils.Count && __instance.job != null)
                     currentToil = ___toils[__instance.CurToilIndex];
 
-                GrabYourToolModMemory memory = GrabYourToolMod.Instance.memory;
-
                 if (pawn.Drafted || currentToil == null)
                 {
-                    memory.ClearPawn(pawn);
+                    GrabYourToolMod.Instance.ClearMemory(pawn);
                     return;
                 }
 
                 SkillDef activeSkill = __instance.ActiveSkill ?? __instance.job.RecipeDef?.workSkill;
                 if (activeSkill != null)
                 {
-                    if (!memory.UpdateToilEntry(pawn, currentToil) || !memory.UpdateSkillEntry(pawn, activeSkill))
+                    GrabYourToolMemory memory = GrabYourToolMod.Instance.GetMemory(pawn);
+
+                    if (!memory.UpdateToil(currentToil) || !memory.UpdateSkill(activeSkill))
                         return;
 
                     if (pawn.equipment.Primary != null && HasReleventStatModifiers(pawn.equipment.Primary, activeSkill))
                     {
                         //Log.Message("TryActuallyStartNextToil - Primary is already good weapon");
-                        memory.pawnUsingTool[pawn] = true;
+                        memory.UpdateUsingTool(true);
                     }
                     else
                     {
                         //Log.Message("TryActuallyStartNextToil - Primary is null or not relevant");
-                        memory.pawnUsingTool[pawn] = EquipAppropriateWeapon(pawn, activeSkill);
+                        memory.UpdateUsingTool(EquipAppropriateWeapon(pawn, activeSkill));
                     }
                 }
                 else
                 {
-                    memory.ClearPawn(pawn);
+                    GrabYourToolMod.Instance.ClearMemory(pawn);
                 }
             }
 
@@ -233,7 +242,7 @@ namespace CM_Grab_Your_Tool
             [HarmonyPostfix]
             public static void Postfix(ref bool __result, Pawn ___pawn)
             {
-                if (!__result && GrabYourToolMod.Instance.memory.IsPawnUsingTool(___pawn))
+                if (!__result && GrabYourToolMod.Instance.IsPawnUsingTool(___pawn))
                     __result = true;
             }
         }
