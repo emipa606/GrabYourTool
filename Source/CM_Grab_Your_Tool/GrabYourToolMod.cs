@@ -46,22 +46,10 @@ namespace CM_Grab_Your_Tool
 
     public class GrabYourToolMemory
     {
-        private Toil lastCheckedToil = null;
         private SkillDef lastCheckedSkill = null;
         private bool? usingTool = false;
 
         public bool IsUsingTool => (usingTool.HasValue ? usingTool.Value : false);
-
-        public bool UpdateToil(Toil toil)
-        {
-            if (lastCheckedToil != toil)
-            {
-                lastCheckedToil = toil;
-                return true;
-            }
-
-            return false;
-        }
 
         public bool UpdateSkill(SkillDef skill)
         {
@@ -81,65 +69,62 @@ namespace CM_Grab_Your_Tool
     }
 
     [StaticConstructorOnStartup]
-    public static class JobDriverPatches
+    public static class ToilPatches
     {
-        [HarmonyPatch(typeof(JobDriver))]
-        [HarmonyPatch("TryActuallyStartNextToil", MethodType.Normal)]
-        public static class JobDriver_TryActuallyStartNextToil
+        [HarmonyPatch(typeof(Toil))]
+        [HarmonyPatch(MethodType.Constructor)]
+        public static class Toil_Constructor
         {
             [HarmonyPostfix]
-            public static void Postfix(JobDriver __instance, List<Toil> ___toils)
+            public static void Postfix(Toil __instance)
             {
-                Pawn pawn = __instance.pawn;
-
-                if (pawn == null || pawn.Dead || pawn.equipment == null || pawn.inventory == null || !pawn.RaceProps.Humanlike)
+                if (__instance == null)
                     return;
 
-                //Log.Message("TryActuallyStartNextToil Postfix");
-
-                Toil currentToil = null;
-                if (__instance.CurToilIndex >= 0 && __instance.CurToilIndex < ___toils.Count && __instance.job != null)
-                    currentToil = ___toils[__instance.CurToilIndex];
-
-                if (pawn.Drafted || currentToil == null)
+                __instance.AddPreInitAction(delegate
                 {
-                    GrabYourToolMod.Instance.ClearMemory(pawn);
-                    return;
-                }
+                    Pawn pawn = __instance.GetActor();
 
-                SkillDef activeSkill = __instance.ActiveSkill ?? __instance.job.RecipeDef?.workSkill;
-                if (activeSkill != null)
-                {
-                    GrabYourToolMemory memory = GrabYourToolMod.Instance.GetMemory(pawn);
-
-                    if (!memory.UpdateToil(currentToil) || !memory.UpdateSkill(activeSkill))
+                    if (pawn == null || pawn.Dead || pawn.equipment == null || pawn.inventory == null || !pawn.RaceProps.Humanlike)
                         return;
 
-                    if (pawn.equipment.Primary != null && HasReleventStatModifiers(pawn.equipment.Primary, activeSkill))
+                    if (pawn.Drafted)
                     {
-                        //Log.Message("TryActuallyStartNextToil - Primary is already good weapon");
-                        memory.UpdateUsingTool(true);
+                        GrabYourToolMod.Instance.ClearMemory(pawn);
+                        return;
+                    }
+
+                    SkillDef activeSkill = pawn.CurJob?.RecipeDef?.workSkill;
+                    if (__instance.activeSkill != null && __instance.activeSkill() != null)
+                        activeSkill = __instance.activeSkill();
+
+                    if (activeSkill != null)
+                    {
+                        GrabYourToolMemory memory = GrabYourToolMod.Instance.GetMemory(pawn);
+
+                        if (!memory.UpdateSkill(activeSkill))
+                            return;
+
+                        // Don't do it if this job uses weapons (i.e. hunting)
+                        if (activeSkill == SkillDefOf.Shooting || activeSkill == SkillDefOf.Melee)
+                            memory.UpdateUsingTool(false);
+                        // Check currently equipped item
+                        else if (pawn.equipment.Primary != null && HasReleventStatModifiers(pawn.equipment.Primary, activeSkill))
+                            memory.UpdateUsingTool(true);
+                        // Try and find something else in inventory
+                        else
+                            memory.UpdateUsingTool(EquipAppropriateWeapon(pawn, activeSkill));
                     }
                     else
                     {
-                        //Log.Message("TryActuallyStartNextToil - Primary is null or not relevant");
-                        memory.UpdateUsingTool(EquipAppropriateWeapon(pawn, activeSkill));
+                        GrabYourToolMod.Instance.ClearMemory(pawn);
                     }
-                }
-                else
-                {
-                    GrabYourToolMod.Instance.ClearMemory(pawn);
-                }
+                });
             }
 
             private static bool EquipAppropriateWeapon(Pawn pawn, SkillDef skill)
             {
                 //Log.Message("TryActuallyStartNextToil - EquipAppropriateWeapon");
-
-                // Don't do it if this job uses weapons (i.e. hunting)
-                if (skill == SkillDefOf.Shooting || skill == SkillDefOf.Melee)
-                    return false;
-
                 ThingOwner heldThingsOwner = pawn.inventory.GetDirectlyHeldThings();
                 List<Thing> weaponsHeld = heldThingsOwner.Where(thing => thing.def.IsWeapon).ToList();
 
