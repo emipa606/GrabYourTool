@@ -47,10 +47,13 @@ namespace CM_Grab_Your_Tool
             [HarmonyPostfix]
             public static void Postfix(JobDriver __instance, List<Toil> ___toils)
             {
+                Pawn pawn = __instance.pawn;
+
+                if (pawn == null || pawn.Dead || pawn.equipment == null || pawn.inventory == null || !pawn.RaceProps.Humanlike)
+                    return;
+
                 //Log.Message("TryActuallyStartNextToil Postfix");
 
-                Pawn pawn = __instance.pawn;
-                
                 Toil currentToil = null;
                 if (__instance.CurToilIndex >= 0 && __instance.CurToilIndex < ___toils.Count && __instance.job != null)
                     currentToil = ___toils[__instance.CurToilIndex];
@@ -67,7 +70,7 @@ namespace CM_Grab_Your_Tool
                     bool pawnHasToilEntry = GrabYourToolMod.Instance.lastCheckedToil.ContainsKey(pawn);
                     bool pawnHasSkillEntry = GrabYourToolMod.Instance.lastCheckedSkill.ContainsKey(pawn);
 
-                    // Make sure we only check this toil once in case it somehow repeats
+                    // Make sure we only check this toil once in a row in case it somehow repeats
                     if (!pawnHasToilEntry)
                         GrabYourToolMod.Instance.lastCheckedToil.Add(pawn, currentToil);
                     else if (GrabYourToolMod.Instance.lastCheckedToil[pawn] != currentToil)
@@ -83,10 +86,21 @@ namespace CM_Grab_Your_Tool
                     else
                         return;
 
-                    GrabYourToolMod.Instance.pawnUsingTool[pawn] = EquipAppropriateWeapon(pawn, activeSkill);
+                    if (pawn.equipment.Primary != null && HasReleventStatModifiers(pawn.equipment.Primary, activeSkill))
+                    {
+                        //Log.Message("TryActuallyStartNextToil - Primary is already good weapon");
+                        GrabYourToolMod.Instance.pawnUsingTool[pawn] = true;
+                    }
+                    else
+                    {
+                        //Log.Message("TryActuallyStartNextToil - Primary is null or not relevant");
+                        GrabYourToolMod.Instance.pawnUsingTool[pawn] = EquipAppropriateWeapon(pawn, activeSkill);
+                    }
                 }
                 else
                 {
+                    if (GrabYourToolMod.Instance.lastCheckedSkill.ContainsKey(pawn))
+                        GrabYourToolMod.Instance.lastCheckedSkill.Remove(pawn);
                     if (GrabYourToolMod.Instance.pawnUsingTool.ContainsKey(pawn))
                         GrabYourToolMod.Instance.pawnUsingTool.Remove(pawn);
                 }
@@ -107,8 +121,7 @@ namespace CM_Grab_Your_Tool
                 {
                     if (HasReleventStatModifiers(weapon, skill))
                     {
-                        TryEquipWeapon(pawn, weapon as ThingWithComps);
-                        return true;
+                        return TryEquipWeapon(pawn, weapon as ThingWithComps);
                     }
                 }
 
