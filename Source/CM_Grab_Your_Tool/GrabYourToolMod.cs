@@ -203,7 +203,7 @@ namespace CM_Grab_Your_Tool
             [HarmonyPostfix]
             public static void Postfix(PawnRenderer __instance, ref bool __result, Pawn ___pawn)
             {
-                if (!__result && GrabYourToolMod.Instance.pawnUsingTool.ContainsKey(___pawn))
+                if (!__result && GrabYourToolMod.Instance.pawnUsingTool.ContainsKey(___pawn) && GrabYourToolMod.Instance.pawnUsingTool[___pawn])
                     __result = true;
             }
         }
