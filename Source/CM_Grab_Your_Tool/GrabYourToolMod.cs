@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 
 using HarmonyLib;
 using RimWorld;
@@ -13,6 +15,8 @@ namespace CM_Grab_Your_Tool
     {
         private static GrabYourToolMod _instance;
         public static GrabYourToolMod Instance => _instance;
+
+        public static bool UsingCombatExtended => ModsConfig.ActiveModsInLoadOrder.Any((ModMetaData m) => m.Name == "Combat Extended");
 
         public Dictionary<Pawn, GrabYourToolMemory> pawnMemory = new Dictionary<Pawn, GrabYourToolMemory>();
 
@@ -229,6 +233,34 @@ namespace CM_Grab_Your_Tool
             {
                 if (!__result && GrabYourToolMod.Instance.IsPawnUsingTool(___pawn))
                     __result = true;
+            }
+        }
+    }
+
+    //FloatMenuMakerMap
+    [StaticConstructorOnStartup]
+    public static class FloatMenuMakerMapPatches
+    {
+        [HarmonyPatch(typeof(FloatMenuMakerMap))]
+        [HarmonyPatch("AddHumanlikeOrders", MethodType.Normal)]
+        public static class FloatMenuMakerMap_AddHumanlikeOrders
+        {
+            [HarmonyTranspiler]
+            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                MethodInfo playerHome = AccessTools.Property(typeof(Map), "IsPlayerHome").GetGetMethod();
+                bool replaceCall = !GrabYourToolMod.UsingCombatExtended;
+                foreach (CodeInstruction instruction in instructions)
+                {
+                    if (replaceCall && instruction.Calls(playerHome))
+                    {
+                        instruction.opcode = OpCodes.Ldc_I4_0;
+                        instruction.operand = null;
+                        replaceCall = false;
+                    }
+
+                    yield return instruction;
+                }
             }
         }
     }
