@@ -1,3 +1,9 @@
+## [1.0.4] - 2021-01-20
+
+### Added
+- Colonists will now re-equip the weapon they had previously equipped (if available) when they finish a job that initiated an automatic weapon switch.
+
+
 ## [1.0.3] - 2021-01-14
 
 ### Added
