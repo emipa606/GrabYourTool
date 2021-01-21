@@ -51,6 +51,8 @@
   <ItemGroup>
     <Compile Include="GrabYourToolMod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ToolMemory.cs" />
+    <Compile Include="ToolMemoryTracker.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
