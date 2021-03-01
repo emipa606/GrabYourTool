@@ -1,3 +1,15 @@
+## [1.0.6] - 2021-03-01
+
+### Fixed
+- Further null checks for situation where save has lost all ToolMemories.
+
+
+## [1.0.5] - 2021-03-01
+
+### Fixed
+- Null ToolMemories will be cleared out on save and ignored during play.
+
+
 ## [1.0.4] - 2021-01-20
 
 ### Added

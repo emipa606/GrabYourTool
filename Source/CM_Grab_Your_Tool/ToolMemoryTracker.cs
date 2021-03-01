@@ -14,7 +14,7 @@ namespace CM_Grab_Your_Tool
 {
     public class ToolMemoryTracker : WorldComponent
     {
-        List<ToolMemory> toolMemories = new List<ToolMemory>();
+        private List<ToolMemory> toolMemories = new List<ToolMemory>();
 
         public ToolMemoryTracker(World world) : base(world)
         {
@@ -25,15 +25,26 @@ namespace CM_Grab_Your_Tool
         {
             if (Scribe.mode == LoadSaveMode.Saving)
             {
-                toolMemories = toolMemories.Where(memory => memory.pawn != null && !memory.pawn.Dead && !memory.pawn.Destroyed && memory.pawn.Spawned).ToList();
+                toolMemories = toolMemories.Where(memory => memory != null && memory.pawn != null && !memory.pawn.Dead && !memory.pawn.Destroyed && memory.pawn.Spawned).ToList();
             }
 
             Scribe_Collections.Look(ref toolMemories, "toolMemories", LookMode.Deep);
+
+            CheckToolMemories();
+        }
+
+        // Users somehow ending up with null memory and its unfeasible to test get their save
+        private void CheckToolMemories()
+        {
+            if (toolMemories == null)
+                toolMemories = new List<ToolMemory>();
         }
 
         public ToolMemory GetMemory(Pawn pawn)
         {
-            ToolMemory toolMemory = toolMemories.Find(tm => tm.pawn == pawn);
+            CheckToolMemories();
+
+            ToolMemory toolMemory = toolMemories.Find(tm => tm != null && tm.pawn == pawn);
             if (toolMemory == null)
             {
                 toolMemory = new ToolMemory();
@@ -47,11 +58,13 @@ namespace CM_Grab_Your_Tool
 
         public void ClearMemory(Pawn pawn)
         {
-            ToolMemory toolMemory = toolMemories.Find(tm => tm.pawn == pawn);
+            CheckToolMemories();
+
+            ToolMemory toolMemory = toolMemories.Find(tm => tm != null && tm.pawn == pawn);
             if (toolMemory != null)
             {
                 Thing previouslyEquipped = toolMemory.PreviousEquipped;
-                if (previouslyEquipped != null && pawn.inventory.GetDirectlyHeldThings().Contains(previouslyEquipped))
+                if (previouslyEquipped != null && pawn.inventory != null && pawn.inventory.GetDirectlyHeldThings() != null && pawn.inventory.GetDirectlyHeldThings().Contains(previouslyEquipped))
                     TryEquipWeapon(pawn, previouslyEquipped as ThingWithComps, false);
 
                 toolMemories.Remove(toolMemory);
@@ -61,6 +74,9 @@ namespace CM_Grab_Your_Tool
 
         public static bool EquipAppropriateWeapon(Pawn pawn, SkillDef skill)
         {
+            if (pawn == null || skill == null)
+                return false;
+
             //Log.Message("TryActuallyStartNextToil - EquipAppropriateWeapon");
             ThingOwner heldThingsOwner = pawn.inventory.GetDirectlyHeldThings();
             List<Thing> weaponsHeld = heldThingsOwner.Where(thing => thing.def.IsWeapon).ToList();
@@ -78,6 +94,9 @@ namespace CM_Grab_Your_Tool
 
         public static bool HasReleventStatModifiers(Thing weapon, SkillDef skill)
         {
+            if (weapon == null)
+                return false;
+
             List<StatModifier> statModifiers = weapon.def.equippedStatOffsets;
             if (skill != null && statModifiers != null)
             {
@@ -119,7 +138,7 @@ namespace CM_Grab_Your_Tool
 
         public static bool TryEquipWeapon(Pawn pawn, ThingWithComps weapon, bool makeSound = true)
         {
-            if (weapon == null)
+            if (pawn == null || weapon == null)
                 return false;
 
             ThingWithComps currentWeapon = pawn.equipment.Primary;
