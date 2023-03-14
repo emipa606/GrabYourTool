@@ -1,15 +1,11 @@
-﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Manifest>
-  <identifier>CaptainMuscles.GrabYourTool</identifier>
-  <version>1.0.7</version>
-  <dependencies>
-	<li>Ludeon.RimWorld</li>
-	<li>brrainz.harmony</li>
-  </dependencies>
-  <loadAfter>
-    <li>Ludeon.RimWorld</li>
-	<li>brrainz.harmony</li>
-  </loadAfter>
-  <showCrossPromotions>true</showCrossPromotions>
-  <downloadUri>https://github.com/CaptainMuscles/CM_Grab_Your_Tool/releases</downloadUri>
+  <identifier>GrabYourTool</identifier>
+  <version>1.4.1</version>
+  <dependencies />
+  <incompatibleWith />
+  <loadBefore />
+  <loadAfter />
+  <manifestUri>https://raw.githubusercontent.com/emipa606/GrabYourTool/master/About/Manifest.xml</manifestUri>
+  <downloadUri>https://github.com/emipa606/GrabYourTool/releases</downloadUri>
 </Manifest>

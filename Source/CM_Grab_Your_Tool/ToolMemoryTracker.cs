@@ -1,174 +1,208 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-
-using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using Verse;
-using Verse.AI;
 using Verse.Sound;
 
-namespace CM_Grab_Your_Tool
+namespace CM_Grab_Your_Tool;
+
+public class ToolMemoryTracker : WorldComponent
 {
-    public class ToolMemoryTracker : WorldComponent
+    private List<ToolMemory> toolMemories = new List<ToolMemory>();
+
+    public ToolMemoryTracker(World world) : base(world)
     {
-        private List<ToolMemory> toolMemories = new List<ToolMemory>();
+    }
 
-        public ToolMemoryTracker(World world) : base(world)
+    public override void ExposeData()
+    {
+        if (Scribe.mode == LoadSaveMode.Saving)
         {
-
+            toolMemories = toolMemories.Where(memory =>
+                memory is { pawn: { Dead: false, Destroyed: false, Spawned: true } }).ToList();
         }
 
-        public override void ExposeData()
+        Scribe_Collections.Look(ref toolMemories, "toolMemories", LookMode.Deep);
+
+        CheckToolMemories();
+    }
+
+    // Users somehow ending up with null memory and its unfeasible to test get their save
+    private void CheckToolMemories()
+    {
+        if (toolMemories == null)
         {
-            if (Scribe.mode == LoadSaveMode.Saving)
-            {
-                toolMemories = toolMemories.Where(memory => memory != null && memory.pawn != null && !memory.pawn.Dead && !memory.pawn.Destroyed && memory.pawn.Spawned).ToList();
-            }
-
-            Scribe_Collections.Look(ref toolMemories, "toolMemories", LookMode.Deep);
-
-            CheckToolMemories();
+            toolMemories = new List<ToolMemory>();
         }
+    }
 
-        // Users somehow ending up with null memory and its unfeasible to test get their save
-        private void CheckToolMemories()
+    public ToolMemory GetMemory(Pawn pawn)
+    {
+        CheckToolMemories();
+
+        var toolMemory = toolMemories.Find(tm => tm != null && tm.pawn == pawn);
+        if (toolMemory != null)
         {
-            if (toolMemories == null)
-                toolMemories = new List<ToolMemory>();
-        }
-
-        public ToolMemory GetMemory(Pawn pawn)
-        {
-            CheckToolMemories();
-
-            ToolMemory toolMemory = toolMemories.Find(tm => tm != null && tm.pawn == pawn);
-            if (toolMemory == null)
-            {
-                toolMemory = new ToolMemory();
-                toolMemory.pawn = pawn;
-
-                toolMemories.Add(toolMemory);
-            }
-
             return toolMemory;
         }
 
-        public void ClearMemory(Pawn pawn)
+        toolMemory = new ToolMemory
         {
-            CheckToolMemories();
+            pawn = pawn
+        };
 
-            ToolMemory toolMemory = toolMemories.Find(tm => tm != null && tm.pawn == pawn);
-            if (toolMemory != null)
-            {
-                Thing previouslyEquipped = toolMemory.PreviousEquipped;
-                if (previouslyEquipped != null && pawn.inventory != null && pawn.inventory.GetDirectlyHeldThings() != null && pawn.inventory.GetDirectlyHeldThings().Contains(previouslyEquipped))
-                    TryEquipWeapon(pawn, previouslyEquipped as ThingWithComps, false);
+        toolMemories.Add(toolMemory);
 
-                toolMemories.Remove(toolMemory);
-            }
+        return toolMemory;
+    }
+
+    public void ClearMemory(Pawn pawn)
+    {
+        CheckToolMemories();
+
+        var toolMemory = toolMemories.Find(tm => tm != null && tm.pawn == pawn);
+        if (toolMemory == null)
+        {
+            return;
         }
 
-
-        public static bool EquipAppropriateWeapon(Pawn pawn, SkillDef skill)
+        var previouslyEquipped = toolMemory.PreviousEquipped;
+        if (previouslyEquipped != null && pawn.inventory?.GetDirectlyHeldThings() != null &&
+            pawn.inventory.GetDirectlyHeldThings().Contains(previouslyEquipped))
         {
-            if (pawn == null || skill == null)
-                return false;
+            TryEquipWeapon(pawn, previouslyEquipped as ThingWithComps, false);
+        }
 
-            //Log.Message("TryActuallyStartNextToil - EquipAppropriateWeapon");
-            ThingOwner heldThingsOwner = pawn.inventory.GetDirectlyHeldThings();
-            List<Thing> weaponsHeld = heldThingsOwner.Where(thing => thing.def.IsWeapon).ToList();
+        toolMemories.Remove(toolMemory);
+    }
 
-            foreach (Thing weapon in weaponsHeld)
-            {
-                if (HasReleventStatModifiers(weapon, skill))
-                {
-                    return TryEquipWeapon(pawn, weapon as ThingWithComps);
-                }
-            }
 
+    public static bool EquipAppropriateWeapon(Pawn pawn, SkillDef skill)
+    {
+        if (pawn == null || skill == null)
+        {
             return false;
         }
 
-        public static bool HasReleventStatModifiers(Thing weapon, SkillDef skill)
+        ////Log.Message("TryActuallyStartNextToil - EquipAppropriateWeapon");
+        var heldThingsOwner = pawn.inventory.GetDirectlyHeldThings();
+        var weaponsHeld = heldThingsOwner.Where(thing => thing.def.IsWeapon).ToList();
+
+        var maxEffectivness = 0f;
+        ThingWithComps thingToEquip = null;
+        foreach (var weapon in weaponsHeld)
         {
-            if (weapon == null)
-                return false;
-
-            List<StatModifier> statModifiers = weapon.def.equippedStatOffsets;
-            if (skill != null && statModifiers != null)
+            if (!HasReleventStatModifiers(weapon, skill, pawn, out var effectivness))
             {
-                //Logger.MessageFormat(this, "Found relevantSkills...");
-                foreach (StatModifier statModifier in statModifiers)
-                {
-                    List<SkillNeed> skillNeedOffsets = statModifier.stat.skillNeedOffsets;
-                    List<SkillNeed> skillNeedFactors = statModifier.stat.skillNeedFactors;
-
-                    if (skillNeedOffsets != null)
-                    {
-                        //Logger.MessageFormat(this, "Found skillNeedOffsets...");
-                        foreach (SkillNeed skillNeed in skillNeedOffsets)
-                        {
-                            if (skill == skillNeed.skill)
-                            {
-                                //Logger.MessageFormat(this, "{0} has {1}, relevant to {2}", weapon.Label, statModifier.stat.label, skillNeed.skill);
-                                return true;
-                            }
-                        }
-                    }
-
-                    if (skillNeedFactors != null)
-                    {
-                        foreach (SkillNeed skillNeed in skillNeedFactors)
-                        {
-                            if (skill == skillNeed.skill)
-                            {
-                                //Logger.MessageFormat(this, "{0} has {1}, relevant to {2}", weapon.Label, statModifier.stat.label, skillNeed.skill);
-                                return true;
-                            }
-                        }
-                    }
-                }
+                continue;
             }
 
+            if (effectivness <= maxEffectivness)
+            {
+                continue;
+            }
+
+            maxEffectivness = effectivness;
+            thingToEquip = weapon as ThingWithComps;
+        }
+
+        return maxEffectivness > 0 && TryEquipWeapon(pawn, thingToEquip);
+    }
+
+    public static bool HasReleventStatModifiers(Thing weapon, SkillDef skill, Pawn pawn, out float effectivness)
+    {
+        effectivness = 0;
+        if (weapon == null)
+        {
             return false;
         }
 
-        public static bool TryEquipWeapon(Pawn pawn, ThingWithComps weapon, bool makeSound = true)
+        var statModifiers = weapon.def.equippedStatOffsets;
+        if (skill == null || statModifiers == null)
         {
-            if (pawn == null || weapon == null)
-                return false;
+            return false;
+        }
 
-            ThingWithComps currentWeapon = pawn.equipment.Primary;
+        //Log.Message("Found relevantSkills...");
+        foreach (var statModifier in statModifiers)
+        {
+            var skillNeedOffsets = statModifier.stat.skillNeedOffsets;
+            var skillNeedFactors = statModifier.stat.skillNeedFactors;
 
-            bool transferSuccess = true;
-
-            if (currentWeapon != null)
-                transferSuccess = pawn.inventory.innerContainer.TryAddOrTransfer(currentWeapon);
-
-            if (transferSuccess)
+            if (skillNeedOffsets != null)
             {
-                if (weapon.stackCount > 1)
+                //Log.Message("Found skillNeedOffsets...");
+                foreach (var skillNeed in skillNeedOffsets)
                 {
-                    weapon = (ThingWithComps)weapon.SplitOff(1);
+                    if (skill != skillNeed.skill)
+                    {
+                        continue;
+                    }
+
+                    effectivness = skillNeed.ValueFor(pawn);
+                    //Log.Message($"{weapon.Label} has {statModifier.stat.label}, relevant to {skillNeed.skill}");
+                    return true;
                 }
-                if (weapon.holdingOwner != null)
+            }
+
+            if (skillNeedFactors == null)
+            {
+                continue;
+            }
+
+            foreach (var skillNeed in skillNeedFactors)
+            {
+                if (skill != skillNeed.skill)
                 {
-                    weapon.holdingOwner.Remove(weapon);
+                    continue;
                 }
-                pawn.equipment.AddEquipment(weapon);
-                if (makeSound)
-                    weapon.def.soundInteract?.PlayOneShot(new TargetInfo(pawn.Position, pawn.Map));
+
+                effectivness = skillNeed.ValueFor(pawn);
+                //Log.Message($"{weapon.Label} has {statModifier.stat.label}, relevant to {skillNeed.skill}");
                 return true;
             }
-            else
-            {
-                Log.Warning("CM_Grab_Your_Tool: Unable to transfer equipped weapon to inventory");
-            }
+        }
 
+        return false;
+    }
+
+    public static bool TryEquipWeapon(Pawn pawn, ThingWithComps weapon, bool makeSound = true)
+    {
+        if (pawn == null || weapon == null)
+        {
             return false;
         }
+
+        var currentWeapon = pawn.equipment.Primary;
+
+        var transferSuccess = true;
+
+        if (currentWeapon != null)
+        {
+            transferSuccess = pawn.inventory.innerContainer.TryAddOrTransfer(currentWeapon);
+        }
+
+        if (transferSuccess)
+        {
+            if (weapon.stackCount > 1)
+            {
+                weapon = (ThingWithComps)weapon.SplitOff(1);
+            }
+
+            weapon.holdingOwner?.Remove(weapon);
+
+            pawn.equipment.AddEquipment(weapon);
+            if (makeSound)
+            {
+                weapon.def.soundInteract?.PlayOneShot(new TargetInfo(pawn.Position, pawn.Map));
+            }
+
+            return true;
+        }
+
+        Log.Warning("CM_Grab_Your_Tool: Unable to transfer equipped weapon to inventory");
+
+        return false;
     }
 }

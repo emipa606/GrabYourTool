@@ -1,0 +1,4 @@
+# Changelog for GrabYourTool
+
+1.4.1 - Updated for 1.4, thanks to Donald for the IL-code. Reworked it a bit to apply to more toils, also will try to find the best item equipped, not just the first
+

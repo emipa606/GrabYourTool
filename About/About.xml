@@ -1,25 +1,92 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-	<name>Grab Your Tool!</name>
-	<author>Captain Muscles (Nathan Harbour)</author>
-	<packageId>CaptainMuscles.GrabYourTool</packageId>
-	<url>https://github.com/CaptainMuscles/CM_Grab_Your_Tool/releases</url>
-	<supportedVersions>
-		<li>1.2</li>
+  <name>Grab Your Tool! (Continued)</name>
+  <packageId>Mlie.GrabYourTool</packageId>
+  <author>Captain Muscles (Nathan Harbour)</author>
+  <url>https://github.com/emipa606/GrabYourTool</url>
+  <supportedVersions>
+    <li>1.2</li>
     <li>1.3</li>
-	</supportedVersions>
-	<description>Do your pawns always have the right tool for the job? Then why the hell aren't they using them? This mod will make them do that.</description>
-	<modDependencies>
-		<li>
-			<packageId>brrainz.harmony</packageId>
-			<displayName>Harmony</displayName>
-			<steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl>
-			<downloadUrl>https://github.com/pardeike/HarmonyRimWorld/releases/latest</downloadUrl>
-		</li>
-	</modDependencies>
+    <li>1.4</li>
+  </supportedVersions>
+  <modDependencies>
+    <li>
+      <packageId>brrainz.harmony</packageId>
+      <displayName>Harmony</displayName>
+      <steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl>
+      <downloadUrl>https://github.com/pardeike/HarmonyRimWorld/releases/latest</downloadUrl>
+    </li>
+  </modDependencies>
+  <loadAfter>
+    <li>brrainz.harmony</li>
+  </loadAfter>
+  <description>[img]https://i.imgur.com/buuPQel.png[/img]
+Update of Captain Muscles (Nathan Harbour)s mod
+https://steamcommunity.com/sharedfiles/filedetails/?id=2355912467
 
-	<loadAfter>
-		<li>Ludeon.RimWorld</li>
-		<li>brrainz.harmony</li>
-	</loadAfter>
+Thanks to Donald for the fixed IL-code!
+
+[img]https://i.imgur.com/pufA0kM.png[/img]
+
+[table]
+    [tr]
+        [td][url=https://invite.gg/Mlie][img]https://i.imgur.com/zdzzBrc.png[/img][/url][/td]
+        [td][url=https://github.com/emipa606/GrabYourTool][img]https://i.imgur.com/kTkpTOE.png[/img][/url][/td]
+    [/tr]
+    [tr]
+        [td][img]https://i.imgur.com/WjDSfUn.png[/img][/td]
+        [td][img]https://i.imgur.com/Be8E2qJ.png[/img][/td]
+    [/tr]
+[/table]
+	
+[img]https://i.imgur.com/Z4GOv8H.png[/img]
+[img]https://i.imgur.com/Mi8ecQv.gif[/img]
+
+Do your pawns always have the right tool for the job? Then why the hell don't they use them already?
+
+With this mod, pawns carrying a tool relevant to their current job will equip them when starting the job. Does NOT activate when drafted or hunting.
+
+[b]Update:[/b]
+This mod now also adds the ability to command colonists to pick up specific items to carry around in their inventory even when not part of a caravan.
+
+[b]Update again:[/b]
+Pawns will now switch back to their previously equipped weapon when finished using a tool for a job
+
+[h2]Useful mods[/h2]
+[hr][/hr]
+Easier manual switching of tools/weapons:
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=2226330302]Pocket Sand[/url]
+
+Mods with tools:
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=1814383360]Vanilla Weapons Expanded[/url]
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=2352893469]Primitive Tools[/url]
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=2027628615]Toolmetrics Redux (Continued)[/url]
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=1851407975]Medieval Madness: Tools of the Trade[/url]
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=2168169520]Gimmicks (Continued)[/url]
+
+tell me if you know some others and I will add them!
+
+[hr][/hr]
+Github download link:
+[url=https://github.com/CaptainMuscles/CM_Grab_Your_Tool/releases]https://github.com/CaptainMuscles/CM_Grab_Your_Tool/releases[/url]
+[hr][/hr]
+This mod was requested at the Rimworld Mod market.
+[url=https://discord.com/invite/7befJWr9xS][img]https://i.imgur.com/gh6C5m2.png[/img][/url]
+[h2]Mods by Captain Muscles[/h2]
+[hr][/hr]
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=2307817213][img]https://i.imgur.com/VoByiic.png[/img][/url][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2329172147][img]https://i.imgur.com/74JDWuZ.png[/img][/url][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2362736503][img]https://i.imgur.com/WG8os6d.png[/img][/url][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2375902187][img]https://i.imgur.com/fCN25Ys.png[/img][/url]
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=2336610918][img]https://i.imgur.com/jxSOtsD.png[/img][/url][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2353882085][img]https://i.imgur.com/rta4B3f.png[/img][/url][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2355912467][img]https://i.imgur.com/iEJE3WP.png[/img][/url][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2359566858][img]https://i.imgur.com/e85mMAF.png[/img][/url][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2366255005][img]https://i.imgur.com/liOYDNc.png[/img][/url][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2369675899][img]https://i.imgur.com/NtLQOev.png[/img][/url][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2369307661][img]https://i.imgur.com/smZOUK8.png[/img][/url][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2375193973][img]https://i.imgur.com/YwDNpdl.png[/img][/url]
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=2380798255][img]https://i.imgur.com/HYnv9r5.png[/img][/url][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2385755478][img]https://i.imgur.com/lA8ImyW.png[/img][/url][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2401146569][img]https://i.imgur.com/t7SaJpC.png[/img][/url][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2403595130][img]https://i.imgur.com/rvZg6ly.png[/img][/url]
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=2411212162][img]https://i.imgur.com/MYa8nY7.png[/img][/url][url=https://steamcommunity.com/sharedfiles/filedetails/?id=2446986597][img]https://i.imgur.com/DMXfSaJ.png[/img][/url]
+[hr][/hr]
+	
+[img]https://i.imgur.com/PwoNOj4.png[/img]
+[list]
+[*] See if the the error persists if you just have this mod and its requirements active.
+[*] If not, try adding your other mods until it happens again.
+[*] Post your error-log using [url=https://steamcommunity.com/workshop/filedetails/?id=818773962]HugsLib[/url] and command Ctrl+F12
+[*] For best support, please use the Discord-channel for error-reporting.
+[*] Do not report errors by making a discussion-thread, I get no notification of that.
+[*] If you have the solution for a problem, please post it to the GitHub repository.
+[/list]</description>
 </ModMetaData>
