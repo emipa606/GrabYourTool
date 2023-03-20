@@ -3,7 +3,6 @@ using System.Linq;
 using RimWorld;
 using RimWorld.Planet;
 using Verse;
-using Verse.Sound;
 
 namespace CM_Grab_Your_Tool;
 
@@ -71,7 +70,7 @@ public class ToolMemoryTracker : WorldComponent
         if (previouslyEquipped != null && pawn.inventory?.GetDirectlyHeldThings() != null &&
             pawn.inventory.GetDirectlyHeldThings().Contains(previouslyEquipped))
         {
-            TryEquipWeapon(pawn, previouslyEquipped as ThingWithComps, false);
+            TryEquipWeapon(pawn, previouslyEquipped as ThingWithComps);
         }
 
         toolMemories.Remove(toolMemory);
@@ -167,7 +166,7 @@ public class ToolMemoryTracker : WorldComponent
         return false;
     }
 
-    public static bool TryEquipWeapon(Pawn pawn, ThingWithComps weapon, bool makeSound = true)
+    public static bool TryEquipWeapon(Pawn pawn, ThingWithComps weapon)
     {
         if (pawn == null || weapon == null)
         {
@@ -193,10 +192,6 @@ public class ToolMemoryTracker : WorldComponent
             weapon.holdingOwner?.Remove(weapon);
 
             pawn.equipment.AddEquipment(weapon);
-            if (makeSound)
-            {
-                weapon.def.soundInteract?.PlayOneShot(new TargetInfo(pawn.Position, pawn.Map));
-            }
 
             return true;
         }
