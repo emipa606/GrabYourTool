@@ -6,13 +6,9 @@ using Verse;
 
 namespace CM_Grab_Your_Tool;
 
-public class ToolMemoryTracker : WorldComponent
+public class ToolMemoryTracker(World world) : WorldComponent(world)
 {
-    private List<ToolMemory> toolMemories = new List<ToolMemory>();
-
-    public ToolMemoryTracker(World world) : base(world)
-    {
-    }
+    private List<ToolMemory> toolMemories = [];
 
     public override void ExposeData()
     {
@@ -27,12 +23,12 @@ public class ToolMemoryTracker : WorldComponent
         CheckToolMemories();
     }
 
-    // Users somehow ending up with null memory and its unfeasible to test get their save
+    // Users somehow ending up with null memory, and it's unfeasible to test get their save
     private void CheckToolMemories()
     {
         if (toolMemories == null)
         {
-            toolMemories = new List<ToolMemory>();
+            toolMemories = [];
         }
     }
 
